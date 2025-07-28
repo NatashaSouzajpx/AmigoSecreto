@@ -1,11 +1,5 @@
-const listaDeNomeSorteados = [];
 const listaDeNomes = [];
-const limitedeNomes = 100;
-
-function adicionarNome(tag, nome) {
- let campo = document.getElementById(tag);
-campo.innerHTML = nome;
-}
+const limiteDeNomes = 20;
 
 function adicionarAmigo() {
   const input = document.getElementById("amigo");
@@ -16,7 +10,13 @@ function adicionarAmigo() {
     return;
   }
 
-  if (listaDeNomes.length >= limitedeNomes) {
+  if (listaDeNomes.includes(nome)) {
+    alert("Esse nome já foi adicionado!");
+    input.value = "";
+    return;
+  }
+
+  if (listaDeNomes.length >= limiteDeNomes) {
     alert("Limite de nomes atingido!");
     return;
   }
@@ -24,28 +24,55 @@ function adicionarAmigo() {
   listaDeNomes.push(nome);
   input.value = "";
 
-  const lista = document.getElementById("listaAmigos"); 
+  const lista = document.getElementById("listaAmigos");
   const item = document.createElement("li");
   item.innerText = nome;
   lista.appendChild(item);
 }
+
 function sortearAmigo() {
   if (listaDeNomes.length < 2) {
     alert("Adicione pelo menos 2 nomes para sortear.");
     return;
   }
 
-  const embaralhado = embaralharArray([...listaDeNomes]);
+  let sorteados;
+  let tentativas = 0;
+
+  do {
+    sorteados = embaralharArray([...listaDeNomes]);
+    tentativas++;
+  } while ((temRepetido(listaDeNomes, sorteados) || temDuplicado(sorteados)) && tentativas < 100);
+
+  if (tentativas >= 100) {
+    alert("Não foi possível gerar um sorteio válido. Tente novamente.");
+    return;
+  }
+
   const resultado = document.getElementById("resultado");
-  resultado.innerHTML = ""; 
-  for (let i = 0; i < embaralhado.length; i++) {
-    const amigo = embaralhado[i];
-    const amigoSecreto = i === embaralhado.length - 1 ? embaralhado[0] : embaralhado[i + 1];
+  resultado.innerHTML = "";
+
+  for (let i = 0; i < listaDeNomes.length; i++) {
+    const amigo = listaDeNomes[i];
+    const amigoSecreto = sorteados[i];
 
     const item = document.createElement("li");
     item.innerText = `${amigo} → ${amigoSecreto}`;
     resultado.appendChild(item);
   }
+}
+
+function temRepetido(listaOriginal, sorteados) {
+  for (let i = 0; i < listaOriginal.length; i++) {
+    if (listaOriginal[i] === sorteados[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function temDuplicado(array) {
+  return new Set(array).size !== array.length;
 }
 
 function embaralharArray(array) {
@@ -54,18 +81,4 @@ function embaralharArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
-}
-function limparNomes() {
-
-  listaDeNomes.length = 0;
-  listaDeNomeSorteados.length = 0;
-
-  const listaAmigos = document.getElementById("listaAmigos");
-  listaAmigos.innerHTML = "";
-
-  
-  const resultado = document.getElementById("resultado");
-  resultado.innerHTML = "";
-
-  alert("Todos os nomes foram removidos.");
 }
